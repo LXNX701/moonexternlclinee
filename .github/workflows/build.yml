@@ -36,7 +36,7 @@ jobs:
     - name: Build with Xcode
       run: |
         cd ThreeOneOSFive
-        xcodebuild -project ../ThreeOneOSFive.xcodeproj -scheme External -configuration Release -destination generic/platform=iOS -derivedDataPath build build
+        xcodebuild -project ../ThreeOneOSFive.xcodeproj -scheme External -configuration Release -destination generic/platform=iOS -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
 
     - name: Package IPA
       run: |
