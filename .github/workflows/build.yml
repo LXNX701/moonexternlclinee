@@ -31,17 +31,19 @@ jobs:
         # Install dependencies
         brew install ldid xz
         
-        # Setup SDKs (remove existing if any)
+        # Setup SDKs
         rm -rf $HOME/theos/sdks
         git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
         
-        # Initialize Theos submodules (vendor/include, vendor/lib)
+        # Initialize only required submodules (faster)
         cd $HOME/theos
-        git submodule update --init --recursive
+        git submodule update --init --recursive --depth 1 vendor/dm.pl
+        git submodule update --init --recursive --depth 1 vendor/include
+        git submodule update --init --recursive --depth 1 vendor/lib
         
-        # Verify Theos installation
-        ls -la $HOME/theos/vendor/include/ 2>/dev/null | head -5 || echo "vendor/include missing"
-        ls -la $HOME/theos/vendor/lib/ 2>/dev/null | head -5 || echo "vendor/lib missing"
+        # Verify
+        ls -la $HOME/theos/vendor/include/ | head -3
+        ls -la $HOME/theos/vendor/lib/ | head -3
 
     - name: Configure Firebase (optional)
       continue-on-error: true
