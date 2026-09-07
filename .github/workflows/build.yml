@@ -22,12 +22,13 @@ jobs:
         git clone --depth 1 https://github.com/theos/theos.git $HOME/theos
         echo "THEOS=$HOME/theos" >> $GITHUB_ENV
         echo "$HOME/theos/bin" >> $GITHUB_PATH
-        curl -L https://raw.githubusercontent.com/theos/dm.pl/master/dm.pl -o $HOME/theos/bin/dm.pl
-        chmod +x $HOME/theos/bin/dm.pl
+        export THEOS=$HOME/theos
+        curl -L https://raw.githubusercontent.com/theos/dm.pl/master/dm.pl -o $THEOS/bin/dm.pl
+        chmod +x $THEOS/bin/dm.pl
         brew install ldid xz || true
-        rm -rf $HOME/theos/sdks
-        git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
-        $HOME/theos/bin/update-theos
+        rm -rf $THEOS/sdks
+        git clone --depth 1 https://github.com/theos/sdks.git $THEOS/sdks
+        $THEOS/bin/update-theos
 
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
