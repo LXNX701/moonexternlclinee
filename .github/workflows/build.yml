@@ -24,15 +24,16 @@ jobs:
 
     - name: Setup Theos
       run: |
-        git clone https://github.com/theos/theos.git $HOME/theos
+        git clone --depth 1 https://github.com/theos/theos.git $HOME/theos
         echo "THEOS=$HOME/theos" >> $GITHUB_ENV
         echo "$HOME/theos/bin" >> $GITHUB_PATH
         
         # Install dependencies
         brew install ldid xz
         
-        # Setup SDKs
-        git clone https://github.com/theos/sdks.git $HOME/theos/sdks
+        # Setup SDKs (remove existing if any)
+        rm -rf $HOME/theos/sdks
+        git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
 
     - name: Configure Firebase (optional)
       env:
