@@ -36,20 +36,15 @@ jobs:
         git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
 
     - name: Configure Firebase (optional)
+      continue-on-error: true
       env:
         GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
       run: |
-        if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ] && [ "$GOOGLE_SERVICE_INFO_PLIST" != "" ]; then
-          echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 -d > ThreeOneOSFive/GoogleService-Info.plist 2>/dev/null
-          if [ $? -eq 0 ]; then
-            echo "Firebase configured successfully"
-          else
-            echo "Warning: Firebase config failed to decode - continuing without it"
-            rm -f ThreeOneOSFive/GoogleService-Info.plist
-          fi
-        else
-          echo "Firebase not configured - continuing without it (no secret set)"
+        if [ -z "$GOOGLE_SERVICE_INFO_PLIST" ] || [ "$GOOGLE_SERVICE_INFO_PLIST" = "" ]; then
+          echo "Firebase not configured - skipping (no secret set)"
+          exit 0
         fi
+        echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 -d > ThreeOneOSFive/GoogleService-Info.plist 2>/dev/null && echo "Firebase configured successfully" || echo "Warning: Firebase config failed - continuing without it"
 
     - name: Build IPA
       run: |
