@@ -35,16 +35,13 @@ jobs:
         rm -rf $HOME/theos/sdks
         git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
         
-        # Install dm.pl (required for packaging)
-        if [ ! -f "$HOME/theos/bin/dm.pl" ]; then
-          curl -sL https://raw.githubusercontent.com/theos/theos/master/bin/dm.pl -o $HOME/theos/bin/dm.pl
-          chmod +x $HOME/theos/bin/dm.pl
-        fi
+        # Initialize Theos submodules (vendor/include, vendor/lib)
+        cd $HOME/theos
+        git submodule update --init --recursive
         
         # Verify Theos installation
-        ls -la $HOME/theos/bin/
-        which make
-        ls -la $HOME/theos/bin/dm.pl
+        ls -la $HOME/theos/vendor/include/ 2>/dev/null | head -5 || echo "vendor/include missing"
+        ls -la $HOME/theos/vendor/lib/ 2>/dev/null | head -5 || echo "vendor/lib missing"
 
     - name: Configure Firebase (optional)
       continue-on-error: true
