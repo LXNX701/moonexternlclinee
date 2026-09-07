@@ -22,51 +22,36 @@ jobs:
       with:
         xcode-version: '16.2'
 
-    - name: Setup Theos
-      run: |
-        git clone --depth 1 https://github.com/theos/theos.git $HOME/theos
-        echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-        echo "$HOME/theos/bin" >> $GITHUB_PATH
-        
-        # Install dependencies
-        brew install ldid xz
-        
-        # Setup SDKs
-        rm -rf $HOME/theos/sdks
-        git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
-        
-        # Initialize only required submodules (faster)
-        cd $HOME/theos
-        git submodule update --init --recursive --depth 1 vendor/dm.pl
-        git submodule update --init --recursive --depth 1 vendor/include
-        git submodule update --init --recursive --depth 1 vendor/lib
-        
-        # Verify
-        ls -la $HOME/theos/vendor/include/ | head -3
-        ls -la $HOME/theos/vendor/lib/ | head -3
-
     - name: Configure Firebase (optional)
       continue-on-error: true
       env:
         GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
       run: |
         if [ -z "$GOOGLE_SERVICE_INFO_PLIST" ] || [ "$GOOGLE_SERVICE_INFO_PLIST" = "" ]; then
-          echo "Firebase not configured - skipping (no secret set)"
+          echo "Firebase not configured - skipping"
           exit 0
         fi
-        echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 -d > ThreeOneOSFive/GoogleService-Info.plist 2>/dev/null && echo "Firebase configured successfully" || echo "Warning: Firebase config failed - continuing without it"
+        echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 -d > ThreeOneOSFive/GoogleService-Info.plist 2>/dev/null && echo "Firebase configured" || echo "Firebase config failed - continuing"
 
-    - name: Build IPA
+    - name: Build with Xcode
       run: |
-        export THEOS=$HOME/theos
-        export PATH=$THEOS/bin:$PATH
-        
-        # Build with Theos
-        make clean
-        make package FINALPACKAGE=1
-        
-        # Find and copy IPA
-        find . -name "*.ipa" -type f -exec cp {} ${{ github.workspace }}/MoonPlace.ipa \;
+        cd ThreeOneOSFive
+        xcodebuild -project ../ThreeOneOSFive.xcodeproj -scheme ThreeOneOSFive -configuration Release -destination generic/platform=iOS -derivedDataPath build build
+
+    - name: Package IPA
+      run: |
+        APP_PATH=$(find ThreeOneOSFive/build -name "*.app" -type d | head -1)
+        if [ -n "$APP_PATH" ]; then
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r MoonPlace.ipa Payload/
+          echo "IPA created successfully"
+          ls -la MoonPlace.ipa
+        else
+          echo "Error: .app not found"
+          find ThreeOneOSFive/build -type d -name "*.app" 2>/dev/null || echo "No .app directories found"
+          exit 1
+        fi
 
     - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
