@@ -34,6 +34,17 @@ jobs:
         # Setup SDKs (remove existing if any)
         rm -rf $HOME/theos/sdks
         git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
+        
+        # Install dm.pl (required for packaging)
+        if [ ! -f "$HOME/theos/bin/dm.pl" ]; then
+          curl -sL https://raw.githubusercontent.com/theos/theos/master/bin/dm.pl -o $HOME/theos/bin/dm.pl
+          chmod +x $HOME/theos/bin/dm.pl
+        fi
+        
+        # Verify Theos installation
+        ls -la $HOME/theos/bin/
+        which make
+        ls -la $HOME/theos/bin/dm.pl
 
     - name: Configure Firebase (optional)
       continue-on-error: true
