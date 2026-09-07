@@ -1,0 +1,96 @@
+name: Build Moon Place IPA
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '16.0'
+
+    - name: Setup Theos
+      run: |
+        git clone https://github.com/theos/theos.git $HOME/theos
+        echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+        echo "$HOME/theos/bin" >> $GITHUB_PATH
+        
+        # Install dependencies
+        brew install ldid xz
+        
+        # Setup SDKs
+        git clone https://github.com/theos/sdks.git $HOME/theos/sdks
+
+    - name: Configure Firebase (optional)
+      env:
+        GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+      run: |
+        if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ]; then
+          echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 -d > ThreeOneOSFive/GoogleService-Info.plist
+          echo "Firebase configured"
+        else
+          echo "Firebase not configured - continuing without it"
+        fi
+
+    - name: Build IPA
+      run: |
+        export THEOS=$HOME/theos
+        export PATH=$THEOS/bin:$PATH
+        
+        # Build with Theos
+        make clean
+        make package FINALPACKAGE=1
+        
+        # Find and copy IPA
+        find . -name "*.ipa" -type f -exec cp {} ${{ github.workspace }}/MoonPlace.ipa \;
+
+    - name: Upload IPA artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MoonPlace-IPA
+        path: MoonPlace.ipa
+        retention-days: 30
+
+    - name: Create Release
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.run_number }}
+        name: Moon Place Build ${{ github.run_number }}
+        body: |
+          ## Moon Place - Build ${{ github.run_number }}
+          
+          ### Features
+          - Firebase Authentication
+          - Moon Place UI (Dark/Premium theme)
+          - V1F and V2FX modes
+          - Patch system with Apply/Restore
+          - Kernel exploit support
+          - File browser
+          
+          ### Installation
+          1. Download the IPA
+          2. Sign with your preferred tool (AltStore, SideStore, etc.)
+          3. Install on your iOS device
+          
+          ### Requirements
+          - iOS 15.0+
+          - Compatible device (check exploit compatibility)
+        files: MoonPlace.ipa
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
