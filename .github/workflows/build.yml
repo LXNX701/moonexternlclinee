@@ -27,6 +27,7 @@ jobs:
         brew install ldid xz || true
         rm -rf $HOME/theos/sdks
         git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
+        $HOME/theos/bin/update-theos
 
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
