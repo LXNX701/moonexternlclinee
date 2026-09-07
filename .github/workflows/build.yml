@@ -22,16 +22,17 @@ jobs:
       with:
         xcode-version: '16.2'
 
-    - name: Configure Firebase (optional)
-      continue-on-error: true
+      - name: Configure Firebase (optional)
+      id: firebase
       env:
         GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
       run: |
         if [ -z "$GOOGLE_SERVICE_INFO_PLIST" ] || [ "$GOOGLE_SERVICE_INFO_PLIST" = "" ]; then
           echo "Firebase not configured - skipping"
+          echo "firebase_configured=false" >> $GITHUB_OUTPUT
           exit 0
         fi
-        echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 -d > ThreeOneOSFive/GoogleService-Info.plist 2>/dev/null && echo "Firebase configured" || echo "Firebase config failed - continuing"
+        echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 -d > ThreeOneOSFive/GoogleService-Info.plist 2>/dev/null && echo "Firebase configured" && echo "firebase_configured=true" >> $GITHUB_OUTPUT || echo "Firebase config failed - continuing without it" && echo "firebase_configured=false" >> $GITHUB_OUTPUT
 
     - name: Build with Xcode
       run: |
