@@ -17,11 +17,13 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Setup Theos
+    - name: Setup Theos with dm.pl
       run: |
         git clone --depth 1 https://github.com/theos/theos.git $HOME/theos
         echo "THEOS=$HOME/theos" >> $GITHUB_ENV
         echo "$HOME/theos/bin" >> $GITHUB_PATH
+        curl -L https://raw.githubusercontent.com/theos/dm.pl/master/dm.pl -o $HOME/theos/bin/dm.pl
+        chmod +x $HOME/theos/bin/dm.pl
         brew install ldid xz || true
         rm -rf $HOME/theos/sdks
         git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
@@ -67,7 +69,7 @@ jobs:
         name: Moon Place Build ${{ github.run_number }}
         body: |
           ## Moon Place - Build ${{ github.run_number }}
-          
+
           ### Features
           - Firebase Authentication
           - Moon Place UI (Dark/Premium theme)
@@ -75,12 +77,12 @@ jobs:
           - Patch system with Apply/Restore
           - Kernel exploit support
           - File browser
-          
+
           ### Installation
           1. Download the IPA
           2. Sign with your preferred tool (AltStore, SideStore, etc.)
           3. Install on your iOS device
-          
+
           ### Requirements
           - iOS 15.0+
           - Compatible device (check exploit compatibility)
